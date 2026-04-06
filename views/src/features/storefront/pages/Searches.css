@@ -1,0 +1,281 @@
+.search-results-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background: #ffffff;
+}
+
+.search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.search-info h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #001e2b;
+}
+
+.search-info span {
+    color: #ff9900;
+}
+
+.search-info p {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.view-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.sort-dropdown button {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-view {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 10px;
+}
+
+.toggle-view button {
+    border: none;
+    background: none;
+    padding: 6px;
+    border-radius: 7px;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.toggle-view button.active {
+    background: white;
+    color: #001e2b;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.searches-main-container {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 40px;
+}
+
+/* Sidebar Filters */
+.filters-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.filter-group h3 {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 15px;
+    color: #001e2b;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-options label {
+    font-size: 14px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.price-inputs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.price-inputs input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.apply-filter {
+    width: 100%;
+    padding: 10px;
+    background: #001e2b;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Results Grid */
+.results-display.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 20px;
+    align-content: start;
+}
+
+/* Reusing the "Smallest Possible" Card Design */
+.search-item-card {
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    background: white;
+    transition: 0.3s;
+}
+
+.search-item-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 30, 43, 0.05);
+}
+
+.search-img-area {
+    position: relative;
+    height: 180px;
+    background: #f8fafc;
+}
+
+.search-img-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.search-wish-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: white;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    opacity: 0;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.search-item-card:hover .search-wish-btn {
+    opacity: 1;
+}
+
+.search-card-body {
+    padding: 12px;
+}
+
+.search-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #ff9900;
+    margin-bottom: 4px;
+}
+
+.search-prod-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #001e2b;
+    margin-bottom: 6px;
+}
+
+
+.search-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-price {
+    font-size: 15px;
+    font-weight: 800;
+    color: #001e2b;
+}
+
+.search-add-btn {
+    background: #f1f5f9;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.search-add-btn:hover {
+    background: #001e2b;
+    color: white;
+}
+
+/* List View Overrides */
+.results-display.list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.results-display.list .search-item-card {
+    display: flex;
+    height: 140px;
+}
+
+.results-display.list .search-img-area {
+    width: 140px;
+    height: 100%;
+}
+
+.results-display.list .search-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+}
+
+@media (max-width: 900px) {
+    .searches-main-container {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-sidebar {
+        display: none;
+    }
+
+    /* On mobile, usually use a filter drawer */
+    .search-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+}

@@ -1,0 +1,566 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id String @id @default(uuid())
+  name String? @db.VarChar(255)
+  email String @unique @db.VarChar(255)
+  password String
+
+  profilePic String? @map("profile_pic")
+  picPublicId String? @map("pic_public_id")
+
+  role Role @default(USER)
+  status UserStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+
+  sellerProfile SellerProfile?
+  cartItems CartItem[]
+  wishlistItems WishlistItem[]
+  orders Order[]
+  reviews Review[]
+  ledgerEntries LedgerEntry[]
+  disputes Dispute[]
+  deliveryProfile DeliveryProfile?
+
+  @@index([email])
+  @@map("users")
+}
+
+enum FeaturedRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model SellerProfile {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+
+  businessName String?
+  phoneNumber String?
+
+  paymentMethod String?
+  accountNumber String?
+  accountHolder String?
+  bankName String?
+
+  taxId String?
+  taxPercentage Decimal?
+
+  commissionRate Decimal @default(0.1)
+
+  balance Decimal @default(0)
+  heldBalance Decimal @default(0)
+
+  isVerified Boolean @default(false)
+  verifiedAt DateTime?
+
+  businessLicense String?
+  nationalId String?
+
+  status SellerStatus @default(PENDING)
+  rejectionNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  products Product[]
+  payouts Payout[]
+  ledgerEntries LedgerEntry[]
+  discounts Discount[]
+  orderItems OrderItem[]
+  featuredProductRequests FeaturedProductRequest[]
+
+  @@index([userId])
+  @@map("seller_profile")
+}
+
+model Product {
+  id String @id @default(uuid())
+
+  sellerProfileId String
+  sellerProfile SellerProfile @relation(fields:[sellerProfileId], references: [id])
+
+  name String
+  description String?
+  category String?
+
+  attributes Json?
+
+  price Decimal @db.Decimal(10,2)
+
+  productDiscountAmount Decimal? @db.Decimal(10,2)
+  saleEndsAt DateTime?
+
+  stock Int @default(0)
+  reservedStock Int @default(0)
+
+  archived Boolean @default(false)
+
+  isFeatured    Boolean   @default(false)
+  featuredUntil DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  productImages ProductImages[]
+  cartItems CartItem[]
+  wishlistItems WishlistItem[]
+  orderItems OrderItem[]
+  reviews Review[]
+  featuredProductRequests FeaturedProductRequest[]
+
+  @@index([category])
+  @@index([name])
+  @@index([sellerProfileId])
+  @@index([isFeatured])
+  @@map("products")
+}
+
+model FeaturedProductRequest {
+  id String @id @default(uuid())
+
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  sellerProfileId String
+  sellerProfile SellerProfile @relation(fields: [sellerProfileId], references: [id])
+
+  durationDays Int
+
+  status FeaturedRequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  reviewedById String?
+  rejectionNote String?
+
+  @@index([status])
+  @@index([productId])
+  @@map("featured_product_requests")
+}
+
+model ProductImages {
+  id String @id @default(uuid())
+
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  url String
+  publicId String
+
+  @@map("product_images")
+}
+
+model CartItem {
+  id String @id @default(uuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  quantity Int @default(1)
+
+  @@unique([userId, productId])
+  @@map("cart")
+}
+
+model WishlistItem {
+  id String @id @default(uuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("wishlist")
+}
+
+model Order {
+  id String @id @default(uuid())
+
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  subtotalAmount Decimal @db.Decimal(10,2)
+  discountAmount Decimal @db.Decimal(10,2)
+  taxAmount Decimal @db.Decimal(10,2)
+  commissionAmount Decimal @db.Decimal(10,2)
+  totalAmount Decimal @db.Decimal(10,2)
+
+  currency String @default("ETB")
+
+  status OrderStatus @default(PENDING)
+
+  shippingAddress String
+  shippingPhone String
+  shippingCity String
+  shippingCountry String
+
+  deliveryFeeAmount Decimal @default(0) @db.Decimal(10, 2)
+
+  deliveryProfileId String?
+  deliveryProfile DeliveryProfile? @relation(fields: [deliveryProfileId], references: [id])
+
+  deliveryConfirmationCode String?
+  buyerConfirmedAt DateTime?
+  disputeWindowEndsAt DateTime?
+  fundsReleasedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  items OrderItem[]
+  payments Payment[]
+  disputes Dispute[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([deliveryProfileId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+
+  orderId String
+  order Order @relation(fields: [orderId], references: [id])
+
+  productId String
+  product Product @relation(fields: [productId], references: [id])
+
+  sellerProfileId String
+  sellerProfile SellerProfile @relation(fields: [sellerProfileId], references: [id])
+
+  quantity Int
+  priceAtPurchase Decimal @db.Decimal(10,2)
+
+  commissionAmount Decimal
+  taxAmount Decimal
+
+  status OrderStatus
+
+  deliveryProfileId String?
+  deliveryProfile DeliveryProfile? @relation(fields: [deliveryProfileId], references: [id])
+
+  escrowReleasedAt DateTime?
+  refundedAt DateTime?
+
+  disputes Dispute[]
+
+  @@index([orderId])
+  @@index([sellerProfileId])
+  @@index([deliveryProfileId])
+  @@map("order_items")
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  orderId String
+  order Order @relation(fields: [orderId], references: [id])
+
+  amount Decimal @db.Decimal(10,2)
+  currency String @default("ETB")
+
+  provider PaymentProvider
+  providerRef String @unique
+  idempotencyKey String? @unique
+
+  status PaymentStatus
+
+  paidAt DateTime?
+  failedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  events PaymentEvent[]
+  refunds Refund[]
+
+  @@index([orderId])
+  @@map("payments")
+}
+
+model PaymentEvent {
+  id String @id @default(uuid())
+
+  paymentId String
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  eventType String
+  payload Json
+
+  createdAt DateTime @default(now())
+
+  @@map("payment_events")
+}
+
+model Refund {
+  id String @id @default(uuid())
+
+  paymentId String
+  payment Payment @relation(fields: [paymentId], references: [id])
+
+  orderItemId String?
+
+  amount Decimal @db.Decimal(10,2)
+  reason String?
+
+  status TransactionStatus
+
+  createdAt DateTime @default(now())
+
+  @@map("refunds")
+}
+
+model Payout {
+  id String @id @default(uuid())
+
+  sellerProfileId String
+  sellerProfile SellerProfile @relation(fields: [sellerProfileId], references: [id])
+
+  amount Decimal @db.Decimal(10,2)
+  currency String @default("ETB")
+
+  provider PaymentProvider
+  providerRef String?
+
+  status TransactionStatus
+
+  createdAt DateTime @default(now())
+
+  @@index([sellerProfileId])
+  @@map("payouts")
+}
+
+model LedgerEntry {
+  id String @id @default(uuid())
+
+  userId String?
+  user User? @relation(fields: [userId], references: [id])
+  sellerProfileId String?
+  sellerProfile SellerProfile? @relation(fields: [sellerProfileId], references: [id])
+
+  type LedgerType
+  amount Decimal @db.Decimal(10,2)
+
+  referenceId String
+  referenceType String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([sellerProfileId])
+  @@map("ledger_entries")
+}
+
+model Dispute {
+  id String @id @default(uuid())
+
+  orderId String
+  order Order @relation(fields: [orderId], references: [id])
+
+  orderItemId String?
+  orderItem OrderItem? @relation(fields: [orderItemId], references: [id])
+
+  userId String
+  user User @relation(fields: [userId], references: [id])
+
+  reason String
+  status String
+
+  adminResolutionNote String?
+  resolvedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([orderItemId])
+  @@map("disputes")
+}
+
+model Discount {
+  id String @id @default(uuid())
+
+  code String @unique
+
+  type DiscountType
+  value Decimal
+
+  maxDiscount Decimal?
+  minOrderAmount Decimal?
+
+  usageLimit Int?
+  usedCount Int @default(0)
+
+  expiresAt DateTime?
+  active Boolean @default(true)
+
+  sellerProfileId String?
+  sellerProfile SellerProfile? @relation(fields: [sellerProfileId], references: [id])
+
+  @@map("discounts")
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  rating Int
+  comment String?
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("reviews")
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  action String
+  userId String?
+
+  entityId String?
+  entityType String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+enum Role {
+  USER
+  SELLER
+  ADMIN
+  DELIVERY
+}
+
+model DeliveryProfile {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+
+  isAvailable Boolean @default(true)
+
+  phoneNumber String?
+  vehicleLabel String?
+  baseDeliveryFeeAmount Decimal @default(50) @db.Decimal(10, 2)
+
+  payoutMethod String?
+  payoutAccountNumber String?
+  payoutAccountHolder String?
+  payoutBankName String?
+
+  balance Decimal @default(0) @db.Decimal(10, 2)
+  heldBalance Decimal @default(0) @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+  orderItems OrderItem[]
+  payouts DeliveryPayout[]
+
+  @@index([userId])
+  @@map("delivery_profile")
+}
+
+model DeliveryPayout {
+  id String @id @default(uuid())
+
+  deliveryProfileId String
+  deliveryProfile DeliveryProfile @relation(fields: [deliveryProfileId], references: [id])
+
+  amount Decimal @db.Decimal(10, 2)
+  currency String @default("ETB")
+
+  provider PaymentProvider @default(CHAPA)
+  providerRef String?
+
+  status TransactionStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  @@index([deliveryProfileId])
+  @@map("delivery_payouts")
+}
+
+enum SellerStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentProvider {
+  TELEBIRR
+  STRIPE
+  CHAPA
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  HELD
+  RELEASED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum LedgerType {
+  DEBIT
+  CREDIT
+}

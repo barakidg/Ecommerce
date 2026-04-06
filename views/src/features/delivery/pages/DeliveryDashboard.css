@@ -1,0 +1,251 @@
+.dv-dash-page {
+    min-height: 100vh;
+    background: #0f172a;
+    color: #e2e8f0;
+    display: flex;
+    flex-direction: column;
+}
+
+.dv-dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    background: rgba(15, 23, 42, 0.95);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.dv-dash-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.dv-dash-brand small {
+    font-weight: 500;
+    opacity: 0.7;
+    font-size: 0.85rem;
+}
+
+.dv-dash-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dv-dash-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(30, 41, 59, 0.8);
+    color: #e2e8f0;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.dv-dash-toggle:hover {
+    border-color: rgba(94, 234, 212, 0.4);
+}
+
+.dv-dash-toggle--off {
+    opacity: 0.75;
+}
+
+.dv-dash-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.dv-dash-main {
+    flex: 1;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dv-dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .dv-dash-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dv-dash-card {
+    background: rgba(30, 41, 59, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 14px;
+    padding: 18px 20px;
+}
+
+.dv-dash-card h2 {
+    margin: 0 0 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.dv-dash-wallet {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.dv-dash-wallet-stat span {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+}
+
+.dv-dash-wallet-stat strong {
+    font-size: 1.35rem;
+    color: #5eead4;
+}
+
+.dv-dash-payout-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.dv-dash-payout-row input {
+    width: 120px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.dv-dash-payout-row select {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.dv-dash-btn-primary {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    color: #042f2e;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.dv-dash-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dv-dash-order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.dv-dash-order {
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.dv-dash-order-meta {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.dv-dash-order-addr {
+    font-size: 13px;
+    line-height: 1.45;
+    margin-bottom: 10px;
+}
+
+.dv-dash-order-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dv-dash-btn-ghost {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(94, 234, 212, 0.35);
+    background: transparent;
+    color: #5eead4;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.dv-dash-btn-ghost:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.dv-dash-handoff {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.dv-dash-handoff label {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.dv-dash-handoff select,
+.dv-dash-handoff input {
+    width: 100%;
+    max-width: 280px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: #0f172a;
+    color: #e2e8f0;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.dv-dash-muted {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}

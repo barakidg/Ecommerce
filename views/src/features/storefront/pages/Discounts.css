@@ -1,0 +1,233 @@
+.discounts-page {
+    background: #ffffff;
+    min-height: 100vh;
+    padding: 40px 20px;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.promo-banner {
+    background: #001e2b;
+    border-radius: 24px;
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    margin-bottom: 50px;
+    position: relative;
+    overflow: hidden;
+}
+
+.sale-tag {
+    background: #ef4444;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.promo-text h1 {
+    font-size: 32px;
+    font-weight: 900;
+}
+
+.promo-text p {
+    opacity: 0.7;
+    font-size: 15px;
+    margin-top: 5px;
+}
+
+.countdown-timer {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.time-unit {
+    text-align: center;
+}
+
+.time-unit span {
+    display: block;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.time-unit label {
+    font-size: 10px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    font-weight: 700;
+}
+
+.time-sep {
+    font-size: 20px;
+    font-weight: 900;
+    margin-top: -15px;
+    color: #ff9900;
+}
+
+.discount-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.discount-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.discount-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.08);
+}
+
+.discount-img-wrapper {
+    position: relative;
+    height: 180px;
+    background: #f8fafc;
+}
+
+.discount-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.off-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
+
+.discount-wishlist-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: 0.2s;
+}
+
+.discount-card:hover .discount-wishlist-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.discount-card-content {
+    padding: 12px;
+}
+
+.discount-rating {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #ff9900;
+    margin-bottom: 5px;
+}
+
+.discount-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #001e2b;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.discount-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.price-stack {
+    display: flex;
+    flex-direction: column;
+}
+
+.old-price {
+    font-size: 11px;
+    color: #94a3b8;
+    text-decoration: line-through;
+    font-weight: 600;
+}
+
+.new-price {
+    font-size: 15px;
+    font-weight: 900;
+    color: #ef4444;
+}
+
+.discount-cart-btn {
+    background: #001e2b;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.discount-cart-btn:hover {
+    background: #ff9900;
+}
+
+@media (max-width: 800px) {
+    .promo-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 30px;
+        padding: 30px 20px;
+    }
+
+    .discount-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .discount-img-wrapper {
+        height: 150px;
+    }
+
+    .new-price {
+        font-size: 13px;
+    }
+}

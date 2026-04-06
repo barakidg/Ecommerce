@@ -1,0 +1,219 @@
+.seller-profile-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px 0 48px;
+}
+
+.seller-profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.seller-profile-header h1 {
+    font-size: 28px;
+    color: #001e2b;
+    margin: 10px 0 8px;
+}
+
+.seller-profile-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 15px;
+}
+
+.seller-profile-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ff9900;
+}
+
+.seller-profile-status {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.seller-profile-status--verified {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.seller-profile-status--pending {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.seller-profile-status--rejected,
+.seller-profile-status--suspended {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.seller-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.seller-profile-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 30, 43, 0.04);
+}
+
+.seller-profile-card--highlight {
+    background: linear-gradient(145deg, #001e2b, #0f3d52);
+    color: white;
+    border: none;
+}
+
+.seller-profile-card--highlight h2 {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.seller-profile-card--highlight .seller-profile-muted {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.seller-profile-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    margin: 0 0 16px;
+    color: #001e2b;
+}
+
+.seller-profile-balance {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.5px;
+}
+
+.seller-profile-dl {
+    margin: 0;
+}
+
+.seller-profile-dl > div {
+    margin-bottom: 14px;
+}
+
+.seller-profile-dl dt {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+
+.seller-profile-dl dd {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.seller-profile-card--highlight .seller-profile-dl dd {
+    color: white;
+}
+
+.seller-profile-card--highlight .seller-profile-dl dt {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.seller-profile-mono {
+    font-family: ui-monospace, monospace;
+}
+
+.seller-profile-muted {
+    color: #64748b;
+    font-size: 14px;
+    margin: 0;
+}
+
+.seller-profile-form {
+    padding: 28px !important;
+}
+
+.seller-profile-form h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: #001e2b;
+}
+
+.seller-profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.seller-profile-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.seller-profile-form input {
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.seller-profile-save {
+    margin-top: 24px;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 12px;
+    background: #ff9900;
+    color: #001e2b;
+    font-weight: 800;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.seller-profile-save:hover:not(:disabled) {
+    filter: brightness(1.05);
+}
+
+.seller-profile-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.seller-profile-error-card {
+    background: white;
+    border: 1px solid #fecaca;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    color: #b91c1c;
+}
+
+.seller-profile-error-card h2 {
+    margin: 16px 0 8px;
+    color: #991b1b;
+}
+
+.seller-profile-error-card p {
+    margin: 0;
+    color: #64748b;
+}

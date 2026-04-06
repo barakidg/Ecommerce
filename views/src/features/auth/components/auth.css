@@ -1,0 +1,144 @@
+.auth-full-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8fafc;
+}
+
+.auth-simple-header {
+    padding: 25px 0;
+    display: flex;
+    justify-content: center;
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.auth-logo img {
+    height: 35px;
+}
+
+.auth-logo span {
+    font-size: 24px;
+    font-weight: 800;
+    color: #001e2b;
+}
+
+.auth-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.auth-simple-footer {
+    padding: 40px 0;
+    text-align: center;
+    background: linear-gradient(to top, #ffffff, #f8fafc);
+    border-top: 1px solid #e2e8f0;
+}
+
+.auth-footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-bottom: 15px;
+}
+
+.auth-footer-links a {
+    color: #0066c0;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.auth-simple-footer p {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.password-toggle:hover {
+    color: #ff9900;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.input-wrapper .password-toggle {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 4px;
+    transition: color 0.2s;
+    z-index: 2;
+}
+
+.auth-inline-error {
+    font-size: 12.5px;
+    font-style: italic;
+    color: #e53e3e;
+    margin-bottom: 10px;
+    margin-top: -4px;
+    text-align: left;
+    line-height: 1.5;
+    padding-left: 2px;
+}
+
+.auth-submit-btn {
+    width: 100%;
+    background: #001e2b;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+.auth-submit-btn:hover {
+    background: #ff9900;
+    color: #001e2b;
+}
+
+.auth-divider {
+    text-align: center;
+    margin: 15px 0;
+    position: relative;
+}
+
+.auth-divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+
+.auth-divider span {
+    background: white;
+    padding: 0 15px;
+    position: relative;
+    z-index: 2;
+    color: #94a3b8;
+    font-size: 13px;
+}
