@@ -3,12 +3,14 @@ import bcrypt from "bcryptjs"
 import "dotenv/config"
 
 async function main() {
+    // Keep seed idempotent and Docker-friendly with sane defaults.
     const adminEmail = process.env.ADMIN_EMAIL
-    const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10)
+    const adminPasswordPlain = process.env.ADMIN_PASSWORD
+    const hashedPassword = await bcrypt.hash(adminPasswordPlain, 10)
 
     const admin = await db.user.upsert({
         where: { email: adminEmail },
-        update: {},
+        update: { role: "ADMIN" },
         create: {
             name: "Admin",
             email: adminEmail,
@@ -16,10 +18,10 @@ async function main() {
             role: "ADMIN"
         }
     })
-    console.log("Admin seeded: ", admin)
+    console.log("Admin seeded:", admin.email, "(password:", adminPasswordPlain + ")")
 
-    const deliveryEmail = process.env.DELIVERY_EMAIL || "delivery@bmart.local"
-    const deliveryPasswordPlain = process.env.DELIVERY_PASSWORD || "Delivery123!"
+    const deliveryEmail = process.env.DELIVERY_EMAIL
+    const deliveryPasswordPlain = process.env.DELIVERY_PASSWORD
     const deliveryHash = await bcrypt.hash(deliveryPasswordPlain, 10)
 
     const courier = await db.user.upsert({
