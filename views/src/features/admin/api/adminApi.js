@@ -48,6 +48,11 @@ export const getAdminDashboardStats = async () => {
     return data.stats
 }
 
+export const getAdminCompanyOverview = async () => {
+    const { data } = await API.get("v1/admin/company/overview")
+    return data
+}
+
 export const getAdminProducts = async () => {
     const { data } = await API.get("v1/admin/products")
     return { products: data.products ?? [], nextCursor: data.nextCursor }

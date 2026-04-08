@@ -1,4 +1,5 @@
 import db from "../config/db.js"
+import { ensureCompanyAccountOutsideTransaction } from "../lib/companyAccount.js"
 
 const paginationHelper = (cursor, limit) => {
     return {
@@ -375,14 +376,14 @@ export const processPayout = async (req, res) => {
                     where: { id: payout.sellerProfileId },
                     data: {
                         balance: { increment: payout.amount },
-                        heldBalance: { decrement: payout.amount }
+                        payoutHoldBalance: { decrement: payout.amount }
                     }
                 });
             } else if (newStatus === "SUCCESS") {
                 await tx.sellerProfile.update({
                     where: { id: payout.sellerProfileId },
                     data: {
-                        heldBalance: { decrement: payout.amount }
+                        payoutHoldBalance: { decrement: payout.amount }
                     }
                 });
 
@@ -457,14 +458,14 @@ export const processDeliveryPayout = async (req, res) => {
                     where: { id: payout.deliveryProfileId },
                     data: {
                         balance: { increment: payout.amount },
-                        heldBalance: { decrement: payout.amount }
+                        payoutHoldBalance: { decrement: payout.amount }
                     }
                 });
             } else if (newStatus === "SUCCESS") {
                 await tx.deliveryProfile.update({
                     where: { id: payout.deliveryProfileId },
                     data: {
-                        heldBalance: { decrement: payout.amount }
+                        payoutHoldBalance: { decrement: payout.amount }
                     }
                 });
             }
@@ -576,6 +577,7 @@ export const archiveProduct = async (req, res) => {
 
 export const getDashboardStats = async (req, res) => {
     try {
+        const company = await ensureCompanyAccountOutsideTransaction();
         const totalRegisteredUsers = await db.user.count({ where: { deletedAt: null } });
         const totalSellers = await db.sellerProfile.count({ where: { status: "VERIFIED", deletedAt: null } });
         const pendingSellerApprovals = await db.sellerProfile.count({ where: { status: "PENDING", deletedAt: null } });
@@ -596,8 +598,58 @@ export const getDashboardStats = async (req, res) => {
                 openDisputes,
                 pendingPayouts,
                 pendingDeliveryPayouts,
-                totalVolume: payments._sum.amount || 0
+                totalVolume: payments._sum.amount || 0,
+                companyHeldBalance: company.heldBalance,
+                companyBalance: company.balance
             }
+        });
+    } catch (error) {
+        res.status(500).json({ message: "server error." });
+    }
+};
+
+export const getCompanyOverview = async (req, res) => {
+    try {
+        const company = await ensureCompanyAccountOutsideTransaction();
+
+        const recentEntries = await db.companyLedgerEntry.findMany({
+            where: { companyAccountId: company.id },
+            orderBy: { createdAt: "desc" },
+            take: 100,
+            include: {
+                payment: {
+                    select: {
+                        id: true,
+                        orderId: true,
+                        amount: true,
+                        status: true
+                    }
+                }
+            }
+        });
+
+        const payoutHoldSellers = await db.sellerProfile.aggregate({
+            _sum: { payoutHoldBalance: true }
+        });
+        const payoutHoldDelivery = await db.deliveryProfile.aggregate({
+            _sum: { payoutHoldBalance: true }
+        });
+        const sellerHeld = await db.sellerProfile.aggregate({
+            _sum: { heldBalance: true }
+        });
+        const deliveryHeld = await db.deliveryProfile.aggregate({
+            _sum: { heldBalance: true }
+        });
+
+        res.status(200).json({
+            company,
+            totals: {
+                sellerEscrowHeld: sellerHeld._sum.heldBalance || 0,
+                courierHeldBeforeConfirmation: deliveryHeld._sum.heldBalance || 0,
+                sellerPayoutHold: payoutHoldSellers._sum.payoutHoldBalance || 0,
+                deliveryPayoutHold: payoutHoldDelivery._sum.payoutHoldBalance || 0
+            },
+            recentEntries
         });
     } catch (error) {
         res.status(500).json({ message: "server error." });

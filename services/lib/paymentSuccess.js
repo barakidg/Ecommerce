@@ -1,4 +1,5 @@
 import db from "../config/db.js"
+import { ensureCompanyAccount } from "./companyAccount.js"
 
 /**
  * Completes a successful payment: CONFIRMED order, line items CONFIRMED, seller earnings in heldBalance (escrow).
@@ -42,7 +43,45 @@ export async function applyPaymentSuccessInTransaction(tx, paymentId, opts = {})
         data: { status: "CONFIRMED" }
     })
 
+    const company = await ensureCompanyAccount(tx)
+    await tx.companyAccount.update({
+        where: { id: company.id },
+        data: {
+            heldBalance: { increment: payment.amount }
+        }
+    })
+    await tx.companyLedgerEntry.create({
+        data: {
+            companyAccountId: company.id,
+            paymentId: payment.id,
+            orderId: payment.orderId,
+            type: "CREDIT",
+            bucket: "BUYER_HELD",
+            amount: payment.amount,
+            fromEntityType: "USER",
+            fromEntityId: payment.order.userId,
+            toEntityType: "COMPANY",
+            toEntityId: company.id,
+            note: "Buyer payment captured and held in platform escrow."
+        }
+    })
+
     for (const item of payment.order.items) {
+        const stockUpdate = await tx.product.updateMany({
+            where: {
+                id: item.productId,
+                stock: { gte: item.quantity },
+                reservedStock: { gte: item.quantity }
+            },
+            data: {
+                stock: { decrement: item.quantity },
+                reservedStock: { decrement: item.quantity }
+            }
+        })
+        if (stockUpdate.count === 0) {
+            throw new Error(`Unable to allocate stock for product ${item.productId}`)
+        }
+
         const sellerEarnings =
             Number(item.priceAtPurchase) * item.quantity - Number(item.commissionAmount)
 
@@ -76,6 +115,65 @@ export async function applyPaymentSuccessInTransaction(tx, paymentId, opts = {})
             referenceType: "PURCHASE"
         }
     })
+
+    return { alreadyApplied: false }
+}
+
+/**
+ * Marks payment/order as failed and releases reserved inventory.
+ *
+ * @param {import('@prisma/client').Prisma.TransactionClient} tx
+ * @param {string} paymentId
+ * @param {{ providerRef?: string }} [opts]
+ */
+export async function applyPaymentFailureInTransaction(tx, paymentId, opts = {}) {
+    const payment = await tx.payment.findUnique({
+        where: { id: paymentId },
+        include: {
+            order: {
+                include: { items: true }
+            }
+        }
+    })
+
+    if (!payment) {
+        throw new Error("Payment not found")
+    }
+
+    if (payment.status === "SUCCESS") {
+        return { alreadyApplied: true }
+    }
+
+    const providerRef = opts.providerRef ?? payment.providerRef
+
+    await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+            status: "FAILED",
+            failedAt: new Date(),
+            providerRef
+        }
+    })
+
+    await tx.order.update({
+        where: { id: payment.orderId },
+        data: { status: "CANCELLED" }
+    })
+
+    for (const item of payment.order.items) {
+        await tx.orderItem.update({
+            where: { id: item.id },
+            data: { status: "CANCELLED" }
+        })
+
+        await tx.product.updateMany({
+            where: {
+                id: item.productId,
+                reservedStock: { gte: item.quantity }
+            },
+            data: { reservedStock: { decrement: item.quantity } }
+        })
+    }
 
     return { alreadyApplied: false }
 }

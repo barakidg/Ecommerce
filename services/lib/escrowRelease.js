@@ -1,7 +1,12 @@
 import db from "../config/db.js"
+import { ensureCompanyAccount } from "./companyAccount.js"
 
 function sellerEarningsForItem(item) {
-    return Number(item.priceAtPurchase) * item.quantity - Number(item.commissionAmount)
+    return (
+        Number(item.priceAtPurchase) * item.quantity -
+        Number(item.commissionAmount) -
+        Number(item.taxAmount)
+    )
 }
 
 export async function releaseDueEscrowForOrders() {
@@ -33,6 +38,11 @@ export async function releaseDueEscrowForOrders() {
             if (openBlocksOrder) return
 
             let anyReleased = false
+            const company = await ensureCompanyAccount(tx)
+            const successPayment = await tx.payment.findFirst({
+                where: { orderId: fresh.id, status: "SUCCESS" },
+                orderBy: { createdAt: "asc" }
+            })
 
             for (const item of fresh.items) {
                 if (item.escrowReleasedAt || item.refundedAt) continue
@@ -43,6 +53,9 @@ export async function releaseDueEscrowForOrders() {
                 if (openForLine) continue
 
                 const earn = sellerEarningsForItem(item)
+                const itemCommission = Number(item.commissionAmount || 0)
+                const itemTax = Number(item.taxAmount || 0)
+                const lineGross = Number(item.priceAtPurchase) * item.quantity
                 if (earn <= 0) {
                     await tx.orderItem.update({
                         where: { id: item.id },
@@ -69,6 +82,49 @@ export async function releaseDueEscrowForOrders() {
                         referenceType: "ESCROW_RELEASED"
                     }
                 })
+
+                await tx.companyAccount.update({
+                    where: { id: company.id },
+                    data: {
+                        heldBalance: { decrement: lineGross },
+                        balance: { increment: itemCommission + itemTax },
+                        totalCommissionEarned: { increment: itemCommission },
+                        totalTaxCollected: { increment: itemTax }
+                    }
+                })
+
+                if (successPayment) {
+                    await tx.companyLedgerEntry.create({
+                        data: {
+                            companyAccountId: company.id,
+                            paymentId: successPayment.id,
+                            orderId: fresh.id,
+                            type: "CREDIT",
+                            bucket: "COMMISSION",
+                            amount: itemCommission,
+                            fromEntityType: "USER",
+                            fromEntityId: fresh.userId,
+                            toEntityType: "COMPANY",
+                            toEntityId: company.id,
+                            note: "Commission recognized after escrow release."
+                        }
+                    })
+                    await tx.companyLedgerEntry.create({
+                        data: {
+                            companyAccountId: company.id,
+                            paymentId: successPayment.id,
+                            orderId: fresh.id,
+                            type: "CREDIT",
+                            bucket: "TAX",
+                            amount: itemTax,
+                            fromEntityType: "USER",
+                            fromEntityId: fresh.userId,
+                            toEntityType: "COMPANY",
+                            toEntityId: company.id,
+                            note: "Tax recorded after escrow release."
+                        }
+                    })
+                }
 
                 await tx.orderItem.update({
                     where: { id: item.id },

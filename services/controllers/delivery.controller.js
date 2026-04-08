@@ -1,6 +1,7 @@
 import db from "../config/db.js"
 import { disputeWindowEndFrom, generateHandoffCode } from "../lib/orderFlow.js"
 import { initiateChapaTransfer } from "./payout.controller.js"
+import { ensureCompanyAccount } from "../lib/companyAccount.js"
 
 export const getDeliveryProfile = async (req, res) => {
     const profile = await db.deliveryProfile.findUnique({
@@ -93,6 +94,10 @@ export const acceptOrder = async (req, res) => {
         const code = generateHandoffCode()
 
         await db.$transaction(async (tx) => {
+            const targetOrder = await tx.order.findUnique({
+                where: { id: orderId },
+                select: { deliveryFeeAmount: true }
+            })
             const updated = await tx.order.updateMany({
                 where: {
                     id: orderId,
@@ -117,6 +122,14 @@ export const acceptOrder = async (req, res) => {
                     status: "PROCESSING"
                 }
             })
+
+            const fee = Number(targetOrder?.deliveryFeeAmount || 0)
+            if (fee > 0) {
+                await tx.deliveryProfile.update({
+                    where: { id: profile.id },
+                    data: { heldBalance: { increment: fee } }
+                })
+            }
         })
 
         const order = await db.order.findUnique({
@@ -184,8 +197,40 @@ export const confirmHandoff = async (req, res) => {
         if (fee > 0) {
             await tx.deliveryProfile.update({
                 where: { id: profile.id },
-                data: { balance: { increment: fee } }
+                data: {
+                    heldBalance: { decrement: fee },
+                    balance: { increment: fee }
+                }
             })
+
+            const company = await ensureCompanyAccount(tx)
+            const successPayment = await tx.payment.findFirst({
+                where: { orderId, status: "SUCCESS" },
+                orderBy: { createdAt: "asc" }
+            })
+            await tx.companyAccount.update({
+                where: { id: company.id },
+                data: {
+                    totalDeliveryFeesCollected: { increment: fee }
+                }
+            })
+            if (successPayment) {
+                await tx.companyLedgerEntry.create({
+                    data: {
+                        companyAccountId: company.id,
+                        paymentId: successPayment.id,
+                        orderId,
+                        type: "DEBIT",
+                        bucket: "DELIVERY_FEE",
+                        amount: fee,
+                        fromEntityType: "COMPANY",
+                        fromEntityId: company.id,
+                        toEntityType: "DELIVERY_PROFILE",
+                        toEntityId: profile.id,
+                        note: "Delivery fee moved to courier available balance after buyer confirmation."
+                    }
+                })
+            }
         }
     })
 
@@ -201,10 +246,24 @@ export const confirmHandoff = async (req, res) => {
 }
 
 export const getDeliveryFinances = async (req, res) => {
-    const p = req.deliveryProfile
+    const p = await db.deliveryProfile.findUnique({
+        where: { id: req.deliveryProfile.id },
+        include: {
+            orders: {
+                where: { status: "PROCESSING" },
+                select: { deliveryFeeAmount: true }
+            }
+        }
+    })
+    const pendingConfirmationHold = (p?.orders || []).reduce(
+        (sum, o) => sum + Number(o.deliveryFeeAmount || 0),
+        0
+    )
     res.json({
-        balance: p.balance,
-        heldBalance: p.heldBalance
+        balance: p?.balance ?? 0,
+        heldBalance: p?.heldBalance ?? 0,
+        payoutHoldBalance: p?.payoutHoldBalance ?? 0,
+        pendingConfirmationHold
     })
 }
 
@@ -233,7 +292,7 @@ export const requestDeliveryPayout = async (req, res) => {
             data: {
                 deliveryProfileId: profile.id,
                 amount,
-                provider,
+                provider: provider || "CHAPA",
                 status: "PENDING"
             }
         })
@@ -242,7 +301,7 @@ export const requestDeliveryPayout = async (req, res) => {
             where: { id: profile.id },
             data: {
                 balance: { decrement: amount },
-                heldBalance: { increment: amount }
+                payoutHoldBalance: { increment: amount }
             }
         })
 
@@ -269,7 +328,7 @@ export const requestDeliveryPayout = async (req, res) => {
                 where: { id: profile.id },
                 data: {
                     balance: { increment: amount },
-                    heldBalance: { decrement: amount }
+                    payoutHoldBalance: { decrement: amount }
                 }
             })
         })
@@ -290,7 +349,7 @@ export const requestDeliveryPayout = async (req, res) => {
         await tx.deliveryProfile.update({
             where: { id: profile.id },
             data: {
-                heldBalance: { decrement: amount }
+                payoutHoldBalance: { decrement: amount }
             }
         })
 

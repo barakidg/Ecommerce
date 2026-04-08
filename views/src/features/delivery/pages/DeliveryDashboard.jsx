@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Package, Truck, LogOut, ToggleLeft, ToggleRight, Wallet } from 'lucide-react';
@@ -12,7 +12,8 @@ import {
     patchDeliveryAvailability,
     getDeliveryFinances,
     postDeliveryPayoutRequest,
-    getDeliveryProfile
+    getDeliveryProfile,
+    patchDeliveryPayoutProfile
 } from '../api/deliveryApi.js';
 import './DeliveryDashboard.css';
 
@@ -22,12 +23,30 @@ const DeliveryDashboard = () => {
     const [handoffOrderId, setHandoffOrderId] = useState('');
     const [handoffCode, setHandoffCode] = useState('');
     const [payoutAmount, setPayoutAmount] = useState('');
+    const [profileForm, setProfileForm] = useState({
+        payoutMethod: '',
+        payoutBankName: '',
+        payoutAccountHolder: '',
+        payoutAccountNumber: '',
+        baseDeliveryFeeAmount: ''
+    });
 
     const { data: profileData } = useQuery({
         queryKey: ['deliveryProfile'],
         queryFn: getDeliveryProfile,
         retry: false
     });
+
+    const syncProfileForm = useCallback((profile) => {
+        if (!profile) return;
+        setProfileForm({
+            payoutMethod: profile.payoutMethod || '',
+            payoutBankName: profile.payoutBankName || '',
+            payoutAccountHolder: profile.payoutAccountHolder || '',
+            payoutAccountNumber: profile.payoutAccountNumber || '',
+            baseDeliveryFeeAmount: profile.baseDeliveryFeeAmount ?? ''
+        });
+    }, []);
 
     const { data: queue = [], isLoading: queueLoading } = useQuery({
         queryKey: ['deliveryQueue'],
@@ -48,6 +67,10 @@ const DeliveryDashboard = () => {
     });
 
     const available = profileData?.profile?.isAvailable ?? false;
+
+    useEffect(() => {
+        syncProfileForm(profileData?.profile);
+    }, [profileData?.profile, syncProfileForm]);
 
     const invalidateAll = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ['deliveryQueue'] });
@@ -95,13 +118,33 @@ const DeliveryDashboard = () => {
         onError: (e) => toast.error(e.response?.data?.message || 'Payout request failed')
     });
 
+    const saveProfileMutation = useMutation({
+        mutationFn: patchDeliveryPayoutProfile,
+        onSuccess: () => {
+            toast.success('Payout profile updated');
+            queryClient.invalidateQueries({ queryKey: ['deliveryProfile'] });
+        },
+        onError: (e) => toast.error(e.response?.data?.message || 'Could not save payout profile')
+    });
+
     const handlePayout = () => {
         const n = parseFloat(payoutAmount);
         if (!Number.isFinite(n) || n <= 0) {
             toast.error('Enter a valid amount');
             return;
         }
-        payoutMutation.mutate({ amount: n, provider: 'CHAPA' });
+        payoutMutation.mutate({ amount: n });
+    };
+
+    const handleProfileSave = () => {
+        const fee = Number(profileForm.baseDeliveryFeeAmount);
+        saveProfileMutation.mutate({
+            payoutMethod: profileForm.payoutMethod.trim(),
+            payoutBankName: profileForm.payoutBankName.trim(),
+            payoutAccountHolder: profileForm.payoutAccountHolder.trim(),
+            payoutAccountNumber: profileForm.payoutAccountNumber.trim(),
+            ...(Number.isFinite(fee) && fee >= 0 ? { baseDeliveryFeeAmount: fee } : {})
+        });
     };
 
     return (
@@ -142,8 +185,12 @@ const DeliveryDashboard = () => {
                             <strong>{Number(finances?.balance ?? 0).toLocaleString()} ETB</strong>
                         </div>
                         <div className="dv-dash-wallet-stat">
-                            <span>In payout hold</span>
+                            <span>Held (accepted, awaiting buyer code)</span>
                             <strong>{Number(finances?.heldBalance ?? 0).toLocaleString()} ETB</strong>
+                        </div>
+                        <div className="dv-dash-wallet-stat">
+                            <span>In payout hold</span>
+                            <strong>{Number(finances?.payoutHoldBalance ?? 0).toLocaleString()} ETB</strong>
                         </div>
                     </div>
                     <div className="dv-dash-payout-row">
@@ -155,9 +202,6 @@ const DeliveryDashboard = () => {
                             value={payoutAmount}
                             onChange={(e) => setPayoutAmount(e.target.value)}
                         />
-                        <select defaultValue="CHAPA">
-                            <option value="CHAPA">CHAPA (placeholder)</option>
-                        </select>
                         <button
                             type="button"
                             className="dv-dash-btn-primary"
@@ -168,9 +212,55 @@ const DeliveryDashboard = () => {
                         </button>
                     </div>
                     <p className="dv-dash-muted" style={{ marginTop: 12 }}>
-                        Funds appear here after delivery is confirmed with buyer code. Payout requests run through
-                        Chapa (mock mode when enabled in backend env).
+                        Held balance increases when you accept deliveries and moves to Available when buyers confirm with code.
                     </p>
+                    <div className="dv-dash-payout-profile">
+                        <h2 style={{ marginBottom: 10 }}>Payout account & delivery fee settings</h2>
+                        <div className="dv-dash-profile-grid">
+                            <input
+                                type="text"
+                                placeholder="Payout method (bank/mobile)"
+                                value={profileForm.payoutMethod}
+                                onChange={(e) => setProfileForm((s) => ({ ...s, payoutMethod: e.target.value }))}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Bank name"
+                                value={profileForm.payoutBankName}
+                                onChange={(e) => setProfileForm((s) => ({ ...s, payoutBankName: e.target.value }))}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Account holder"
+                                value={profileForm.payoutAccountHolder}
+                                onChange={(e) => setProfileForm((s) => ({ ...s, payoutAccountHolder: e.target.value }))}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Account number"
+                                value={profileForm.payoutAccountNumber}
+                                onChange={(e) => setProfileForm((s) => ({ ...s, payoutAccountNumber: e.target.value }))}
+                            />
+                            <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                placeholder="Default delivery fee (ETB)"
+                                value={profileForm.baseDeliveryFeeAmount}
+                                onChange={(e) =>
+                                    setProfileForm((s) => ({ ...s, baseDeliveryFeeAmount: e.target.value }))
+                                }
+                            />
+                            <button
+                                type="button"
+                                className="dv-dash-btn-primary"
+                                onClick={handleProfileSave}
+                                disabled={saveProfileMutation.isPending}
+                            >
+                                Save payout details
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="dv-dash-grid">

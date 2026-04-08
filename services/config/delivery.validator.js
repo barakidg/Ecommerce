@@ -37,6 +37,6 @@ export const acceptOrderSchema = uuidParam("orderId")
 export const requestDeliveryPayoutSchema = z.object({
     body: z.object({
         amount: z.number().positive(),
-        provider: z.enum(["CHAPA", "TELEBIRR", "STRIPE"])
+        provider: z.enum(["CHAPA", "TELEBIRR", "STRIPE"]).optional()
     })
 })

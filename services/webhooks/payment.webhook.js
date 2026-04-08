@@ -1,6 +1,9 @@
 import db from "../config/db.js";
 import crypto from "crypto";
-import { applyPaymentSuccessInTransaction } from "../lib/paymentSuccess.js";
+import {
+    applyPaymentFailureInTransaction,
+    applyPaymentSuccessInTransaction
+} from "../lib/paymentSuccess.js";
 
 export const paymentWebhook = async (req, res) => {
     const hash = crypto.createHmac('sha256', process.env.CHAPA_WEBHOOK_SECRET)
@@ -58,6 +61,9 @@ export const paymentWebhook = async (req, res) => {
                     }
                 });
             }
+            await db.$transaction(async (tx) => {
+                await applyPaymentFailureInTransaction(tx, payment.id, { providerRef: reference });
+            });
         }
         res.sendStatus(200);
     } catch (err) {

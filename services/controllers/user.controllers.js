@@ -8,6 +8,7 @@ import {
     mapProductsWithEffectivePrice
 } from "../lib/productPricing.js"
 import { getDefaultDeliveryFeeAmount } from "../lib/orderFlow.js"
+import { applyPaymentFailureInTransaction } from "../lib/paymentSuccess.js"
 
 const USER_SELECT = {
     id: true,
@@ -95,7 +96,9 @@ export const createOrder = async (req, res) => {
 
             for (const item of cartItems) {
                 const product = item.product;
-                if (!product || product.stock < item.quantity) throw new Error(`${product.name} out of stock`);
+                const productName = product?.name || "Product";
+                const availableStock = Number(product?.stock || 0) - Number(product?.reservedStock || 0);
+                if (!product || availableStock < item.quantity) throw new Error(`${productName} out of stock`);
 
                 const listPrice = Number(product.price);
                 const price = getEffectiveUnitPrice(product);
@@ -148,7 +151,8 @@ export const createOrder = async (req, res) => {
                     shippingAddress, shippingPhone, shippingCity, shippingCountry,
                     status: "PENDING",
                     items: { create: orderItemsData }
-                }
+                },
+                include: { items: true }
             });
 
             const payment = await tx.payment.create({
@@ -161,21 +165,29 @@ export const createOrder = async (req, res) => {
                 }
             });
 
-            const checkoutUrl = await initiatePayment(payment, user);
-
             for (const item of cartItems) {
                 await tx.product.update({
                     where: { id: item.productId },
-                    data: { stock: { decrement: item.quantity } }
+                    data: { reservedStock: { increment: item.quantity } }
                 });
             }
 
             await tx.cartItem.deleteMany({ where: { userId } });
 
-            return { order, payment, checkoutUrl };
+            return { order, payment };
         });
 
-        res.json({ orderId: result.order.id, checkoutUrl: result.checkoutUrl });
+        try {
+            const checkoutUrl = await initiatePayment(result.payment, user);
+            return res.json({ orderId: result.order.id, checkoutUrl });
+        } catch (paymentInitError) {
+            await db.$transaction(async (tx) => {
+                await applyPaymentFailureInTransaction(tx, result.payment.id, {
+                    providerRef: `init_failed_${result.payment.id}`
+                });
+            });
+            return res.status(502).json({ message: "Payment initialization failed. Please try again." });
+        }
 
     } catch (err) {
         console.error("DEBUG ERROR in createOrder:", err);
@@ -480,11 +492,19 @@ export const cancelOrder = async (req, res) => {
         })
 
         for (const item of order.items) {
-            await tx.product.update({
-                where: { id: item.productId },
+            await tx.product.updateMany({
+                where: {
+                    id: item.productId,
+                    reservedStock: { gte: item.quantity }
+                },
                 data: {
-                    stock: { increment: item.quantity }
+                    reservedStock: { decrement: item.quantity }
                 }
+            })
+
+            await tx.orderItem.update({
+                where: { id: item.id },
+                data: { status: "CANCELLED" }
             })
         }
     })

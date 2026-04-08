@@ -624,7 +624,7 @@ export const requestPayout = async (req, res) => {
                 where: { id: profile.id },
                 data: {
                     balance: { decrement: amount },
-                    heldBalance: { increment: amount }
+                    payoutHoldBalance: { increment: amount }
                 }
             });
 
@@ -652,7 +652,7 @@ export const requestPayout = async (req, res) => {
                     where: { id: profile.id },
                     data: {
                         balance: { increment: amount },
-                        heldBalance: { decrement: amount }
+                        payoutHoldBalance: { decrement: amount }
                     }
                 });
             });
@@ -674,7 +674,7 @@ export const requestPayout = async (req, res) => {
             await tx.sellerProfile.update({
                 where: { id: profile.id },
                 data: {
-                    heldBalance: { decrement: amount }
+                    payoutHoldBalance: { decrement: amount }
                 }
             });
 

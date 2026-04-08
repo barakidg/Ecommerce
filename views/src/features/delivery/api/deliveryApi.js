@@ -39,3 +39,8 @@ export const postDeliveryPayoutRequest = async ({ amount, provider }) => {
     const { data } = await API.post("v1/delivery/payouts", { amount, provider })
     return data
 }
+
+export const patchDeliveryPayoutProfile = async (payload) => {
+    const { data } = await API.patch("v1/delivery/profile/payout", payload)
+    return data
+}

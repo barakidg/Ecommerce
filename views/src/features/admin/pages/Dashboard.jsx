@@ -25,6 +25,7 @@ import { useAdminSellers } from '../hooks/useAdminSellers';
 import { useAdminFeaturedData } from '../hooks/useAdminFeatured';
 import {
     getAdminDashboardStats,
+    getAdminCompanyOverview,
     getAdminProducts,
     getAdminDisputes,
     resolveAdminDispute,
@@ -61,6 +62,11 @@ const AdminDashboard = () => {
         queryKey: ['adminDashboardStats'],
         queryFn: getAdminDashboardStats,
         enabled: activeTab === 'Overview'
+    });
+    const { data: companyOverview, isPending: companyLoading } = useQuery({
+        queryKey: ['adminCompanyOverview'],
+        queryFn: getAdminCompanyOverview,
+        enabled: activeTab === 'Company'
     });
 
     const { data: inventoryProducts = [], isPending: inventoryLoading } = useQuery({
@@ -113,7 +119,8 @@ const AdminDashboard = () => {
                 (key === 'admin' && (q.queryKey[1] === 'sellerRequests' || q.queryKey[1] === 'verifiedSellers')) ||
                 key === 'adminProducts' ||
                 key === 'adminDisputes' ||
-                key === 'adminDeliveryPayouts'
+                key === 'adminDeliveryPayouts' ||
+                key === 'adminCompanyOverview'
             );
         }
     });
@@ -135,6 +142,7 @@ const AdminDashboard = () => {
         else if (activeTab === 'Inventory') queryClient.invalidateQueries({ queryKey: ['adminProducts'] });
         else if (activeTab === 'Disputes') queryClient.invalidateQueries({ queryKey: ['adminDisputes'] });
         else if (activeTab === 'Delivery') queryClient.invalidateQueries({ queryKey: ['adminDeliveryPayouts'] });
+        else if (activeTab === 'Company') queryClient.invalidateQueries({ queryKey: ['adminCompanyOverview'] });
     }, [activeTab, queryClient, refreshFeatured, refreshOverview]);
 
     const handleApprove = (id) => verifySeller({ sellerId: id, status: 'VERIFIED' });
@@ -166,11 +174,11 @@ const AdminDashboard = () => {
             <header className="admin-header">
                 <div className="admin-header-left">
                     <Link to="/" className="auth-logo">
-                        <img src="/shipping.png" alt="B-Mart" />
+                        <img src="/eco.svg" alt="B-Mart" />
                         <span>Admin <small>Hub</small></span>
                     </Link>
                     <nav className="admin-main-nav">
-                        {['Featured', 'Overview', 'Users', 'Sellers', 'Inventory', 'Disputes', 'Delivery', 'Reports'].map(tab => (
+                        {['Featured', 'Overview', 'Users', 'Sellers', 'Inventory', 'Disputes', 'Delivery', 'Company', 'Reports'].map(tab => (
                             <button
                                 key={tab}
                                 className={activeTab === tab ? 'active' : ''}
@@ -219,7 +227,7 @@ const AdminDashboard = () => {
                 <main className="admin-content">
                     <div className="content-header">
                         <h2>{activeTab}</h2>
-                        {(activeTab === 'Featured' || activeTab === 'Overview' || activeTab === 'Sellers' || activeTab === 'Inventory' || activeTab === 'Disputes' || activeTab === 'Delivery') && (
+                        {(activeTab === 'Featured' || activeTab === 'Overview' || activeTab === 'Sellers' || activeTab === 'Inventory' || activeTab === 'Disputes' || activeTab === 'Delivery' || activeTab === 'Company') && (
                             <button
                                 type="button"
                                 className={`btn-refresh ${fetchingAdmin ? 'btn-refresh--busy' : ''}`}
@@ -790,6 +798,79 @@ const AdminDashboard = () => {
                                 </table>
                             </div>
                         </div>
+                    )}
+
+                    {activeTab === 'Company' && (
+                        <>
+                            <div className="platform-stats-grid">
+                                <div className="p-stat-card">
+                                    <div className="p-stat-info">
+                                        <h3>{companyLoading ? '…' : Number(companyOverview?.company?.balance || 0).toLocaleString()}</h3>
+                                        <p>Company available balance (ETB)</p>
+                                    </div>
+                                </div>
+                                <div className="p-stat-card">
+                                    <div className="p-stat-info">
+                                        <h3>{companyLoading ? '…' : Number(companyOverview?.company?.heldBalance || 0).toLocaleString()}</h3>
+                                        <p>Company held balance (ETB)</p>
+                                    </div>
+                                </div>
+                                <div className="p-stat-card">
+                                    <div className="p-stat-info">
+                                        <h3>{companyLoading ? '…' : Number(companyOverview?.company?.totalCommissionEarned || 0).toLocaleString()}</h3>
+                                        <p>Total commission (ETB)</p>
+                                    </div>
+                                </div>
+                                <div className="p-stat-card">
+                                    <div className="p-stat-info">
+                                        <h3>{companyLoading ? '…' : Number(companyOverview?.company?.totalTaxCollected || 0).toLocaleString()}</h3>
+                                        <p>Total taxes (ETB)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="management-table-container card-surface">
+                                <div className="table-header">
+                                    <div className="table-header-titles">
+                                        <h3>Company transaction ledger</h3>
+                                        <span className="table-header-sub">Commission, tax, escrow and delivery money flow</span>
+                                    </div>
+                                </div>
+                                <div className="admin-table-scroll">
+                                    <table className="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Type</th>
+                                                <th>Bucket</th>
+                                                <th>Amount</th>
+                                                <th>From</th>
+                                                <th>To</th>
+                                                <th>Order</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {companyLoading ? (
+                                                <tr><td colSpan="7" className="admin-table__empty">Loading…</td></tr>
+                                            ) : (companyOverview?.recentEntries || []).length === 0 ? (
+                                                <tr><td colSpan="7" className="admin-table__empty">No company entries yet.</td></tr>
+                                            ) : (
+                                                (companyOverview?.recentEntries || []).map((e) => (
+                                                    <tr key={e.id}>
+                                                        <td>{new Date(e.createdAt).toLocaleString()}</td>
+                                                        <td>{e.type}</td>
+                                                        <td>{e.bucket}</td>
+                                                        <td className="admin-table__mono">{Number(e.amount).toLocaleString()} ETB</td>
+                                                        <td>{e.fromEntityType || '—'}</td>
+                                                        <td>{e.toEntityType || '—'}</td>
+                                                        <td className="admin-table__mono">{e.orderId ? `${e.orderId.slice(0, 8)}…` : '—'}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </>
                     )}
                 </main>
             </div>

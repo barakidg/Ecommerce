@@ -249,3 +249,24 @@
     color: #64748b;
     margin: 0;
 }
+
+.dv-dash-payout-profile {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.dv-dash-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 10px;
+    align-items: center;
+}
+
+.dv-dash-profile-grid input {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: #0f172a;
+    color: #e2e8f0;
+}

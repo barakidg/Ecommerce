@@ -4,7 +4,8 @@ import {
     getUserById, updateSellerStatus, getDisputes, resolveDispute,
     getPayouts, processPayout, getDeliveryPayouts, processDeliveryPayout, getOrders, getOrderById, 
     getProducts, archiveProduct, getDashboardStats, getAuditLogs, getPaymentEvents,
-    getFeaturedProductRequests, getAdminFeaturedProducts, reviewFeaturedRequest, removeFeaturedProduct
+    getFeaturedProductRequests, getAdminFeaturedProducts, reviewFeaturedRequest, removeFeaturedProduct,
+    getCompanyOverview
 } from "../controllers/admin.controller.js"
 import protect from "../middlewares/jwt.middleware.js"
 import isAdmin from "../middlewares/admin.middleware.js"
@@ -21,6 +22,7 @@ import {
 const router = Router()
 
 router.get("/dashboard/stats", protect, isAdmin, getDashboardStats)
+router.get("/company/overview", protect, isAdmin, getCompanyOverview)
 router.get("/audit-logs", protect, isAdmin, getAuditLogs)
 router.get("/payment-events", protect, isAdmin, getPaymentEvents)
 

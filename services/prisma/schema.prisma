@@ -62,6 +62,7 @@ model SellerProfile {
 
   balance Decimal @default(0)
   heldBalance Decimal @default(0)
+  payoutHoldBalance Decimal @default(0)
 
   isVerified Boolean @default(false)
   verifiedAt DateTime?
@@ -297,6 +298,7 @@ model Payment {
 
   events PaymentEvent[]
   refunds Refund[]
+  companyEntries CompanyLedgerEntry[]
 
   @@index([orderId])
   @@map("payments")
@@ -481,6 +483,7 @@ model DeliveryProfile {
 
   balance Decimal @default(0) @db.Decimal(10, 2)
   heldBalance Decimal @default(0) @db.Decimal(10, 2)
+  payoutHoldBalance Decimal @default(0) @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -491,6 +494,56 @@ model DeliveryProfile {
 
   @@index([userId])
   @@map("delivery_profile")
+}
+
+model CompanyAccount {
+  id String @id @default(uuid())
+  name String @default("B-Mart Platform")
+
+  balance Decimal @default(0) @db.Decimal(12, 2)
+  heldBalance Decimal @default(0) @db.Decimal(12, 2)
+
+  totalCommissionEarned Decimal @default(0) @db.Decimal(12, 2)
+  totalTaxCollected Decimal @default(0) @db.Decimal(12, 2)
+  totalDeliveryFeesCollected Decimal @default(0) @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries CompanyLedgerEntry[]
+
+  @@map("company_account")
+}
+
+model CompanyLedgerEntry {
+  id String @id @default(uuid())
+
+  companyAccountId String
+  companyAccount CompanyAccount @relation(fields: [companyAccountId], references: [id])
+
+  paymentId String?
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  orderId String?
+
+  type LedgerType
+  bucket String
+  amount Decimal @db.Decimal(12, 2)
+
+  fromEntityType String?
+  fromEntityId String?
+  toEntityType String?
+  toEntityId String?
+
+  note String?
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyAccountId, createdAt])
+  @@index([paymentId])
+  @@index([orderId])
+  @@map("company_ledger_entries")
 }
 
 model DeliveryPayout {
