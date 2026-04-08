@@ -1,6 +1,7 @@
 # Ecommerce Platform
 
 A multi-role ecommerce platform with separate experiences for buyers, sellers, admins, and delivery personnel.
+![Registration](docs/screenshots/Home.jpg)
 
 ## Table of Contents
 
@@ -11,12 +12,7 @@ A multi-role ecommerce platform with separate experiences for buyers, sellers, a
 - [Screenshots](#screenshots)
 - [Quick Start (Docker)](#quick-start-docker)
 - [Local Development (Without Docker)](#local-development-without-docker)
-- [Environment Variables](#environment-variables)
-- [API Overview](#api-overview)
 - [Database and Migrations](#database-and-migrations)
-- [Scripts](#scripts)
-- [Current Limitations](#current-limitations)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Overview
@@ -69,7 +65,7 @@ This project provides an end-to-end marketplace flow:
 
 ![Registration](docs/screenshots/Registration.png)
 ![Product Details](docs/screenshots/Newproduct.png)
-![Company](docs/screenshots/company.png
+![Company](docs/screenshots/company.png)
 
 ![Admin Dashboard](docs/screenshots/admin.png)
 ![Delivery Dashboard](docs/screenshots/delivery.png)
