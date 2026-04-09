@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs"
 import "dotenv/config"
 
 async function main() {
-    // Keep seed idempotent and Docker-friendly with sane defaults.
     const adminEmail = process.env.ADMIN_EMAIL
     const adminPasswordPlain = process.env.ADMIN_PASSWORD
     const hashedPassword = await bcrypt.hash(adminPasswordPlain, 10)
