@@ -87,8 +87,10 @@ This project provides an end-to-end marketplace flow:
 docker compose up --build
 ```
 
-### Service URLs
-
+### Local Service URLs
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000/api
+- Postgres: localhost:5432
 
 ### Stop
 
@@ -132,4 +134,4 @@ In containers, migrations run during backend startup (`prisma migrate deploy`).
 
 ## License
 
-No license file is currently defined in the repository root. Add a `LICENSE` file to clarify usage and distribution terms.
+No license.

@@ -46,6 +46,7 @@ const GoogleAuthButton = ({ actionText = "signin_with" }) => {
         };
 
         if (setup()) {
+            // Initialized successfully
         } else {
             pollId = window.setInterval(() => {
                 if (setup()) {

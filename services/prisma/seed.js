@@ -17,7 +17,7 @@ async function main() {
             role: "ADMIN"
         }
     })
-    console.log("Admin seeded:", admin.email, "(password:", adminPasswordPlain + ")")
+    console.log("Admin seeded:", admin.email, ".")
 
     const deliveryEmail = process.env.DELIVERY_EMAIL
     const deliveryPasswordPlain = process.env.DELIVERY_PASSWORD
@@ -44,7 +44,7 @@ async function main() {
             isAvailable: true
         }
     })
-    console.log("Delivery courier seeded:", courier.email, "(password:", deliveryPasswordPlain + ")")
+    console.log("Delivery courier seeded:", courier.email, ".")
 }
 
 main()
